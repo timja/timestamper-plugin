@@ -1,7 +1,6 @@
 package hudson.plugins.timestamper;
 
 import hudson.ExtensionList;
-import io.jenkins.plugins.casc.ConfigurationAsCode;
 import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.Configurator;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
@@ -22,7 +21,7 @@ public class ConfigAsCodeTest {
 
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
-    public void should_support_configuration_as_code() throws Exception {
+    public void should_support_configuration_as_code() {
         TimestamperConfig timestamperConfig = TimestamperConfig.get();
         assertTrue(timestamperConfig.isAllPipelines());
         assertEquals(timestamperConfig.getElapsedTimeFormat(), "'<b>'HH:mm:ss'</b> '");
@@ -31,14 +30,9 @@ public class ConfigAsCodeTest {
 
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
+    @SuppressWarnings("unchecked")
     public void export_configuration() throws Exception {
-        ConfigurationAsCode
-                .get().configure(ConfigAsCodeTest.class.getResource("configuration-as-code.yml").toString());
-
-        ConfigurationAsCode
-                .get().export(System.out);
         final TimestamperConfig metricsDescriptors = ExtensionList.lookupSingleton(TimestamperConfig.class);
-
 
         ConfiguratorRegistry registry = ConfiguratorRegistry.get();
         ConfigurationContext context = new ConfigurationContext(registry);
@@ -47,6 +41,8 @@ public class ConfigAsCodeTest {
         assertNotNull(node);
         final Mapping accessKey = node.asMapping();
 
-        assertEquals(accessKey.getScalarValue("allPipelines"), "true");
+        assertTrue(Boolean.parseBoolean(accessKey.getScalarValue("allPipelines")));
+        assertEquals(accessKey.getScalarValue("elapsedTimeFormat"), "'<b>'HH:mm:ss'</b> '");
+        assertEquals(accessKey.getScalarValue("systemTimeFormat"), "'<b>'mm:ss'</b> '");
     }
 }
